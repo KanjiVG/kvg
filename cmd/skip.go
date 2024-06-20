@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"kvg"
@@ -25,6 +26,9 @@ var skipre = regexp.MustCompile("([1-4])-([0-9]+)-([0-9]+)")
 
 var total = 0
 var okskip = 0
+
+// The following global variables count the number of successes and
+// failures processing the SKIP file.
 
 // It was not possible to make a guess, based on anything.
 var guessfail = 0
@@ -48,10 +52,26 @@ const noGroup = -2
 const noPosition = -4
 const singleChild = -3
 
+// SKIP categories, see http://nihongo.monash.edu/edrdg/skipperm.html
+const (
+	SkipLeftRight = iota + 1
+	SkipUpDown
+	SkipEnclosure
+	SkipSolid
+)
+
+// Third value for the solid cases
+const (
+	SkipTop = iota + 1
+	SkipBottom
+	SkipThrough
+	SkipOthers
+)
+
 func skipToNums(skip string) (sc skipcode) {
 	matches := skipre.FindStringSubmatch(skip)
 	if len(matches) == 0 {
-		fmt.Fprintf(os.Stderr, "Failed to match %s\n", skip)
+		fmt.Fprintf(os.Stderr, "A SKIP code failed to match: %s\n", skip)
 		os.Exit(1)
 	}
 	sc.shape, _ = strconv.Atoi(matches[1])
@@ -63,9 +83,12 @@ func skipToNums(skip string) (sc skipcode) {
 var PrintSingles = false
 var PrintNoPos = false
 var PrintAMistake = false // print a count mistakes
+// Print out when our guess doesn't match the actual SKIP.
 var PrintWrong = true
 var PrintFails = false
 var PrintCounts = false
+var PrintNoGroup = false
+var PrintKamae = false
 
 const unknown = -1
 
@@ -76,16 +99,17 @@ func guessShape(base *kvg.Group) (first, second, third int) {
 			fmt.Printf("%s: Single child\n", kanji)
 		}
 		oneChild++
-		return 4, unknown, unknown
-		//		return singleChild, unknown, unknown
+		return SkipSolid, unknown, unknown
 	}
 	if !base.Children[0].IsGroup {
-		if false {
+		// This causes failures with 糸 and 非 for example, where the
+		// skip codes are up/down and left/right respectively but we
+		// fail at this stage and get a "solid".
+		if PrintNoGroup {
 			fmt.Printf("%s: First child is not a group.\n", kanji)
 		}
 		nogroup++
-		return 4, unknown, unknown
-		//		return noGroup, unknown, unknown
+		return SkipSolid, unknown, unknown
 	}
 	child0 := base.Children[0].Group
 	pos := child0.Position
@@ -113,53 +137,62 @@ func guessShape(base *kvg.Group) (first, second, third int) {
 	}
 	switch pos {
 	case "left":
-		return 1, nchild0, nremaining
+		return SkipLeftRight, nchild0, nremaining
 	case "tare", "nyo", "kamae", "⿵A":
 		if pos == "kamae" && element == "行" {
-			return 1, nchild0, nremaining
+			return SkipLeftRight, nchild0, nremaining
 		}
 		if pos == "tare" && (element == "户" || element == "戸") {
-			return 2, nchild0, nremaining
+			return SkipUpDown, nchild0, nremaining
 		}
-		return 3, nchild0, nremaining
+		return SkipEnclosure, nchild0, nremaining
 	case "nyoc", "tarec", "⿶2":
-		return 3, nremaining, nchild0
+		return SkipEnclosure, nremaining, nchild0
 	case "top":
-		return 2, nchild0, nremaining
+		return SkipUpDown, nchild0, nremaining
 	}
 	if len(pos) > 0 {
-		/* This does not happen. */
+		// This does not happen.
 		fmt.Printf("Failed to guess for %s\n", pos)
-	} else {
-		/* These currently lack a position field for at least some
-		   cases in KanjiVG. */
-		if element == "尺" || element == "几" || element == "广" ||
-			element == "弋" || element == "戈" ||
-			element == "耂" {
-			return 3, nchild0, nremaining
-		}
-		// Apel's unusual division into top and bottom of 衣.
-		if element == "衣" {
-			nremaining = nbase - 2
-			return 2, 2, nremaining
-		}
-		if element == "弍" {
-			nremaining = nbase - 3
-			return 3, 3, nremaining
-		}
-
-		if element == "一" || element == "二" {
-			return 4, nbase, 1
-		}
-		if PrintNoPos {
-			fmt.Printf("%s Group on child with element %s, but no position\n",
-				kanji, child0.Element)
-		}
-		nopos++
-		return 4, nbase, 4 //-1, unknown, unknown
-		//		return noPosition, nchild0, nremaining
+		return SkipSolid, nbase, SkipOthers
 	}
-	return 4, nbase, 4 //-1, unknown, unknown
+	child1 := base.Children[1].Group
+	pos1 := child1.Position
+	// This catches about four errors as of 2024-06-20, but hopefully
+	// those will be fixed and this won't catch anything eventually.
+	// See https://github.com/KanjiVG/kanjivg/issues/454.
+	if pos1 == "kamae" {
+		if PrintKamae {
+			fmt.Printf("%s: Kamae without matching kamaec\n", kanji)
+		}
+		return SkipEnclosure, nchild0, nremaining
+	}
+	// These currently lack a position field for at least some
+	// cases in KanjiVG.
+	if element == "尺" || element == "几" || element == "广" ||
+		element == "弋" || element == "戈" ||
+		element == "耂" {
+		return SkipLeftRight, nchild0, nremaining
+	}
+	// Apel's unusual division into top and bottom of 衣.
+	if element == "衣" {
+		nremaining = nbase - 2
+		return SkipUpDown, 2, nremaining
+	}
+	if element == "弍" {
+		nremaining = nbase - 3
+		return SkipUpDown, 3, nremaining
+	}
+
+	if element == "一" || element == "二" {
+		return SkipSolid, nbase, SkipTop
+	}
+	if PrintNoPos {
+		fmt.Printf("%s: Group on child with element %s, but no position\n",
+			kanji, child0.Element)
+	}
+	nopos++
+	return SkipSolid, nbase, SkipOthers
 }
 
 var disagree = 0
@@ -171,6 +204,11 @@ func makeSkip(file string) {
 	_, kanji, _ := kvg.FileToParts(file)
 	k := rune(kanji)
 	ks := fmt.Sprintf("%c", k)
+	if len(indi) > 0 {
+		if ks != indi {
+			return
+		}
+	}
 	skip, ok := skipdic[ks]
 	if !ok {
 		return
@@ -183,7 +221,7 @@ func makeSkip(file string) {
 	bshape, a, b := guessShape(base)
 	isUnusual := false
 	if bshape != sc.shape {
-		if sc.shape == 4 {
+		if sc.shape == SkipSolid {
 			unusual++
 			isUnusual = true
 		} else {
@@ -212,7 +250,7 @@ func makeSkip(file string) {
 		if bshape > 0 {
 			if PrintWrong {
 				mismatch++
-				fmt.Printf("Mismatch %d: %s SKIP %s != %d-%d-%d\n",
+				fmt.Printf("Mismatch %d: %s genuine SKIP %s != our guess %d-%d-%d\n",
 					mismatch, ks, skip, bshape, a, b)
 			}
 			guesswrong++
@@ -262,15 +300,31 @@ func makeSkip(file string) {
 	total++
 }
 
+// Just check one kanji
+var indi string
+
 func main() {
+	indiFlag := flag.String("indi", "", "An individual kanji to check against")
+	flag.Parse()
+	if len(*indiFlag) > 0 {
+		indi = *indiFlag
+		PrintSingles = true
+		PrintNoPos = true
+		PrintAMistake = true
+		PrintWrong = true
+		PrintFails = true
+		PrintCounts = true
+		PrintNoGroup = true
+		PrintKamae = true
+	}
 	skipdata, err := ioutil.ReadFile("skip.json")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to read the skip.json file: %s\n", err)
 		os.Exit(1)
 	}
 	err = json.Unmarshal(skipdata, &skipdic)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to parse the skip.json file: %s\n", err)
 		os.Exit(1)
 	}
 	kvg.ExamineAllFilesSimple(makeSkip)
