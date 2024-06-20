@@ -15,6 +15,8 @@ elements, the library user only needs to think about the tree of
 `Child`, `Group`, `Text`, and `Path` elements, and does not need to
 give the elements numbers by himself.
 
-There is an example, `read-write-test`, in the `cmd` subdirectory,
-which reads all the files in `kvg.KVDir`, then writes the XML back out
-again, to check that the formats are kept identical.
+The `cmd` subdirectory contains various utilities such as scripts
+which check for empty elements, check the format of the files,
+renumber the labels, and so on. See [the README
+file](https://github.com/KanjiVG/kvg/blob/master/cmd/README.md) in
+that directory.
