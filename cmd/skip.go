@@ -88,7 +88,7 @@ var PrintWrong = true
 var PrintFails = false
 var PrintCounts = false
 var PrintNoGroup = false
-var PrintKamae = false
+var PrintKamae = true
 
 const unknown = -1
 
@@ -146,7 +146,9 @@ func guessShape(base *kvg.Group) (first, second, third int) {
 			return SkipUpDown, nchild0, nremaining
 		}
 		return SkipEnclosure, nchild0, nremaining
-	case "nyoc", "tarec", "⿶2":
+		// "⿶2" is used in 輿 and 鼎, I don't remember why although I
+		// think I did that (BKB).
+	case "nyoc", "tarec", "⿶", "⿶2":
 		return SkipEnclosure, nremaining, nchild0
 	case "top":
 		return SkipUpDown, nchild0, nremaining
