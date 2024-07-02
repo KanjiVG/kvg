@@ -1,8 +1,8 @@
-# FILES IN THIS DIRECTORY
+# SUBDIRECTORIES
 
-* __bogusgroup.go__ is a tool to find groups with no paths in them
+* __bogusgroup__ is a tool to find groups with no paths in them
 
-* __empty-path.go__ finds files where the number of strokes does not
+* __empty-path__ finds files where the number of strokes does not
 match the number of stroke number labels. It also locates instances
 of empty paths with no information. As of 2024-06-20 there are no
 instances in the repository.
@@ -13,13 +13,8 @@ buffer each time the file is saved (C-x C-s). It requires the user
 already has go-mode.el installed. It also uses a hard-coded path for
 renumber, so it will require end-user editing to be used correctly.
 
-* __Makefile__ builds the Go binaries.
-
-* __make-skip-json.pl__ is a Perl script which makes the file
-`skip.json` from a copy of Kanjidic. You probably don't need to run
-this, since `skip.json` is already in the repository, but if you do
-need it, please install the prerequisite modules using `cpanm
-Data::Kanji::Kanjidic JSON::Create`.
+* __skip__ compares SKIP ("System of Kanji Indexing by Patterns")
+  against values calculated from the KanjiVG breakdowns.
 
 * __read-write-test.go__ provides a utility which reads and then
 writes back out all the files of kvg, and prints a report on which
@@ -29,12 +24,5 @@ files differ from the standard formatting.
 files provided on the command line. This is used by the Emacs editing
 mode.
 
-* __skip.go__ is an attempt at computing the SKIP kanji code from the
-KanjiVG information. This uses a file skip.json which is taken from
-Kanjidic.
-
-* __skip.json__ is the data for `skip.go`.
-
-* __typeshift.go__ is a tool for moving the stroke type values around
-en-masse.
+* __typeshift__ is a tool for shuffling the `kvg:type` values of strokes.
 

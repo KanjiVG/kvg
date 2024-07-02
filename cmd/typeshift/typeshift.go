@@ -1,3 +1,9 @@
+/* Shift commands are of the form
+
+   typeshift --shift 1-2=3-4,3-4=1-2
+
+*/
+
 package main
 
 import (
@@ -45,7 +51,8 @@ func main() {
 		if len(swap) != 0 {
 			shifts = parseSwap(swap, n)
 		} else {
-			fmt.Printf("No shift or swap supplied. Current values are\n")
+			fmt.Printf("No shift or swap supplied. Use --swap a=b to swap the types on a and b, or --shift a:b=c:d to move ranges around.\n")
+			fmt.Printf("Current values are\n")
 			for i := range paths {
 				fmt.Printf("%d: %s\n", i+1, save[i])
 			}
@@ -86,7 +93,7 @@ type shiftInput struct {
 }
 
 func digitError(d string, err error) {
-	fmt.Fprintf(os.Stderr, "Error parsing digits %s: %s\n", err)
+	fmt.Fprintf(os.Stderr, "Error parsing digits %s: %s\n", d, err)
 	os.Exit(1)
 }
 
@@ -100,6 +107,10 @@ func parseDigit(d string) int {
 
 func parseSwap(swap string, n int) (shifts []int) {
 	d := swapCommand.FindStringSubmatch(swap)
+	if len(d) == 0 {
+		fmt.Printf("Syntax error in swap command: use --swap a=b")
+		os.Exit(1)
+	}
 	a := parseDigit(d[1])
 	b := parseDigit(d[2])
 	shifts = blankShifts(n)

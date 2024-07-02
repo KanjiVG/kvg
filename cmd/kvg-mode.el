@@ -2,7 +2,7 @@
 
 (require 'go-mode)
 
-(defcustom renumber-command "/home/ben/projects/kvgpub/cmd/renumber"
+(defcustom renumber-command "/home/ben/projects/kvgpub/cmd/renumber/renumber"
   "The renumber command"
   :type 'string
   :group 'kvg)

@@ -252,8 +252,8 @@ func makeSkip(file string) {
 		if bshape > 0 {
 			if PrintWrong {
 				mismatch++
-				fmt.Printf("Mismatch %d: %s genuine SKIP %s != our guess %d-%d-%d\n",
-					mismatch, ks, skip, bshape, a, b)
+				fmt.Printf("Mismatch %d: %s (%s) genuine SKIP %s != our guess %d-%d-%d\n",
+					mismatch, ks, kvg.TFile(file), skip, bshape, a, b)
 			}
 			guesswrong++
 		} else {
