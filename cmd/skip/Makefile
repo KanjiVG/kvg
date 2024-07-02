@@ -1,8 +1,8 @@
 BINARIES=\
-skip skip.json \
+skip \
 
 
-all: $(BINARIES)
+all: $(BINARIES) skip.json 
 
 skip: $@.go
 	go build $@.go
