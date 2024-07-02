@@ -16,11 +16,11 @@ renumber, so it will require end-user editing to be used correctly.
 * __skip__ compares SKIP ("System of Kanji Indexing by Patterns")
   against values calculated from the KanjiVG breakdowns.
 
-* __read-write-test.go__ provides a utility which reads and then
+* __read-write-test__ provides a utility which reads and then
 writes back out all the files of kvg, and prints a report on which
 files differ from the standard formatting.
 
-* __renumber.go__ provides a utility which reformats and renumbers the
+* __renumber__ provides a utility which reformats and renumbers the
 files provided on the command line. This is used by the Emacs editing
 mode.
 
