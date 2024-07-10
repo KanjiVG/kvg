@@ -26,8 +26,10 @@ type Path struct {
 	ID      string   `xml:"id,attr"`
 	Type    string   `xml:"kvg:type,attr,omitempty"`
 	D       string   `xml:"d,attr"`
-	Parent  *Child   `xml:"-"`
-	Class   string   `xml:"class,attr,omitempty"`
+	// The node in the tree of either groups or paths which
+	// corresponds to this path.
+	Parent *Child `xml:"-"`
+	Class  string `xml:"class,attr,omitempty"`
 }
 
 // Text holder, this contains the stroke numbers.
@@ -46,7 +48,8 @@ type Child struct {
 	Text    Text
 	IsGroup bool
 	IsText  bool
-	Parent  *Group `xml:"-"`
+	// The parent of this element in the tree of groups.
+	Parent *Group `xml:"-"`
 }
 
 // A group.
