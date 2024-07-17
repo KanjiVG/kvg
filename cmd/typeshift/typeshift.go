@@ -51,7 +51,7 @@ func main() {
 		if len(swap) != 0 {
 			shifts = parseSwap(swap, n)
 		} else {
-			fmt.Printf("No shift or swap supplied. Use --swap a=b to swap the types on a and b, or --shift a:b=c:d to move ranges around.\n")
+			fmt.Printf("No shift or swap supplied. Use --swap a=b to swap the types on a and b, or --shift a-b=c-d to move ranges around.\n")
 			fmt.Printf("Current values are\n")
 			for i := range paths {
 				fmt.Printf("%d: %s\n", i+1, save[i])
