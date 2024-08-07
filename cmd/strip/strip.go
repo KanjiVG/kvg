@@ -1,3 +1,8 @@
+/* This strips out all of the ATTLIST headings and all of the
+   nonstandard attributes associated with KanjiVG for the sake of the
+   people whose XML parsers don't process the KanjiVG SVG files
+   correctly. */
+
 package main
 
 import (
@@ -8,11 +13,17 @@ import (
 	"regexp"
 )
 
+// This is the heading for our files.
+
 var StrippedHeading = kvg.Heading
+
+// This removes all the ATTLIST things from the header.
 
 var attlistRe = regexp.MustCompile(`(?ms)\s*(\[\s*<\!ATTLIST.*?>\s*)+\]`)
 
-//var attlistRe = regexp.MustCompile(`(?ms)\[(<!ATTLIST.*?>\s*)+\]`)
+// This should be an option in theory but for now we'll use this
+// directory.
+
 var stripDir = "/home/ben/software/kanjivg/stripped"
 
 func strip(file string) {
