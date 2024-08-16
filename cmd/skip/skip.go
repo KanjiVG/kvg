@@ -92,6 +92,7 @@ var PrintKamae = true
 
 const unknown = -1
 
+// Given the base group of a KanjiVG kanji, try to guess the SKIP code.
 func guessShape(base *kvg.Group) (first, second, third int) {
 	kanji := base.Element
 	if len(base.Children) == 1 {
@@ -307,6 +308,7 @@ var indi string
 
 func main() {
 	indiFlag := flag.String("indi", "", "An individual kanji to check against")
+	singlesFlag := flag.Bool("singles", false, "Print when the base group only has a single child")
 	flag.Parse()
 	if len(*indiFlag) > 0 {
 		indi = *indiFlag
@@ -318,6 +320,9 @@ func main() {
 		PrintCounts = true
 		PrintNoGroup = true
 		PrintKamae = true
+	}
+	if *singlesFlag {
+		PrintSingles = true
 	}
 	skipdata, err := ioutil.ReadFile("skip.json")
 	if err != nil {
