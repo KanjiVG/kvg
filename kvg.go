@@ -463,13 +463,15 @@ func multiSearch(depth int, pos []*Group, gp *Group, funky string, locs *[][]*Gr
 	}
 }
 
-// Given a group gp, find all instances of subgroups with the
-// kvg:element type of "funky", and return their locations as a chain
-// of groups in "locs". To find a single instance, use FindElement
-// instead of this. Annoyingly this puts things in the opposite order
-// to FindElement and also does not return the true/false value of
-// that.
+// WARNING: Please do not use this at the moment. It is due to be
+// changed to a better interface shortly. 2024-09-19 Given a group gp,
+// find all instances of subgroups with the kvg:element type of
+// "funky", and return their locations as a chain of groups in
+// "locs". To find a single instance, use FindElement instead of
+// this. Annoyingly this puts things in the opposite order to
+// FindElement and also does not return the true/false value of that.
 func (gp *Group) FindMultiElement(funky string) (locs [][]*Group) {
+	log.Printf("Don't use FindMultiElement")
 	pos := make([]*Group, 0)
 	locs = make([][]*Group, 0)
 	multiSearch(0, pos, gp, funky, &locs, false)
@@ -786,8 +788,8 @@ func FindType(g *Group, t string) (found bool, loc []*Child) {
 func (c *Child) Dump() (s string) {
 	s += fmt.Sprintf("IsGroup: %t\n", c.IsGroup)
 	s += fmt.Sprintf("IsText: %t\n", c.IsText)
-	s += fmt.Sprintf("Group:%s\n", c.Group.Dump())
-	s += fmt.Sprintf("Text:%s\n", c.Text)
+	s += fmt.Sprintf("Group: %s\n", c.Group.Dump())
+	s += fmt.Sprintf("Text: %s\n", c.Text.Content)
 	return s
 }
 
