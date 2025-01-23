@@ -158,6 +158,10 @@ func (kanjivg *SVG) MakeXML() (output []byte) {
 
 // Make kanjivg into the XML of the KanjiVG files.
 func MakeXML(kanjivg *SVG) (output []byte) {
+	// Here is probably where we want to add the correct style
+	// elements if the input is missing them.
+	//
+	// https://github.com/KanjiVG/kvg/issues/4
 	kanjivg.RenumberXML()
 	output, err := xml.MarshalIndent(*kanjivg, "", "\t")
 	if err != nil {
@@ -411,6 +415,8 @@ func (kvg *SVG) RenumberLabels() {
 
 // Renumber an XML file read into "kvg".
 func (svg *SVG) RenumberXML() {
+	// Here is probably where we should check for flaky "style" elements.
+	// https://github.com/KanjiVG/kvg/issues/4
 	var nPath int64
 	var nGroup int64
 	baseGroup := svg.BaseGroup()
