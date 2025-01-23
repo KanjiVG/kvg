@@ -161,8 +161,7 @@ func MakeXML(kanjivg *SVG) (output []byte) {
 	kanjivg.RenumberXML()
 	output, err := xml.MarshalIndent(*kanjivg, "", "\t")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error marshalling: %s\n", err)
-		os.Exit(1)
+		log.Fatalf("Error marshalling: %s\n", err)
 	}
 	output = fixXML(output)
 	return output
@@ -177,8 +176,7 @@ func (kanjivg *SVG) WriteKanjiFile(file string) {
 func WriteKanjiFile(file string, kanjivg *SVG) {
 	err := os.WriteFile(file, MakeXML(kanjivg), 0644)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing %s: %s\n", file, err)
-		os.Exit(1)
+		log.Fatalf("Error writing %s: %s\n", file, err)
 	}
 }
 
@@ -404,7 +402,7 @@ func (kvg *SVG) RenumberLabels() {
 	for i := range labels.Children {
 		c := &labels.Children[i]
 		if !c.IsText {
-			fmt.Fprintf(os.Stderr, "Error: non-text child in label %d\n", i+1)
+			log.Printf("Error: non-text child in label %d\n", i+1)
 			continue
 		}
 		c.Text.Content = []byte(fmt.Sprintf("%d", i+1))
@@ -595,8 +593,7 @@ func (g *Group) SearchRadical(radPtr *Radical) {
 		}
 		(*radPtr).Tradit = append((*radPtr).Tradit, g)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown value %s for kvg:radical.\n",
-			rad)
+		log.Printf("Unknown value %s for kvg:radical.\n", rad)
 	}
 }
 
@@ -730,6 +727,7 @@ func FileToNum(fileName string) (num int64) {
 	return HexIDToNum(match[1])
 }
 
+// Die if there is an error otherwise do nothing.
 func die(err error, format string, a ...any) {
 	if err == nil {
 		return
