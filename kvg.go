@@ -158,10 +158,6 @@ func (kanjivg *SVG) MakeXML() (output []byte) {
 
 // Make kanjivg into the XML of the KanjiVG files.
 func MakeXML(kanjivg *SVG) (output []byte) {
-	// Here is probably where we want to add the correct style
-	// elements if the input is missing them.
-	//
-	// https://github.com/KanjiVG/kvg/issues/4
 	kanjivg.RenumberXML()
 	output, err := xml.MarshalIndent(*kanjivg, "", "\t")
 	if err != nil {
@@ -413,10 +409,9 @@ func (kvg *SVG) RenumberLabels() {
 	}
 }
 
-// Renumber an XML file read into "kvg".
+// Renumber an XML file read into "kvg" and also check its "style"
+// elements.
 func (svg *SVG) RenumberXML() {
-	// Here is probably where we should check for flaky "style" elements.
-	// https://github.com/KanjiVG/kvg/issues/4
 	var nPath int64
 	var nGroup int64
 	baseGroup := svg.BaseGroup()
@@ -425,6 +420,24 @@ func (svg *SVG) RenumberXML() {
 		renumber(&baseGroup.Children[i], base, &nPath, &nGroup)
 	}
 	svg.RenumberLabels()
+	svg.SetStyle()
+}
+
+// Set the "style" element to the normal KVG one.
+func (svg *SVG) SetStyle() {
+	svg.Groups[0].Style = "fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;"
+	svg.Groups[1].Style = "font-size:8;fill:#808080"
+	removeChildStyles(&svg.Groups[0])
+}
+
+func removeChildStyles(g *Group) {
+	c := (*g).Children
+	for _, child := range c {
+		if child.IsGroup {
+			child.Group.Style = ""
+			removeChildStyles(&child.Group)
+		}
+	}
 }
 
 // Read, renumber, and then write out a kanji file.
